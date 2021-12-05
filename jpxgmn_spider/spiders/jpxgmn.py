@@ -5,9 +5,9 @@ from ..items import JpxgmnSpiderItem
 
 class JpxgmnSpider(scrapy.Spider):
     name = 'jpxgmn'
-    allowed_domains = ['www.jpxgmn.top']
-    start_urls = ['http://www.jpxgmn.top/']
-    resource_url = 'https://jp.plmn5.com/'
+    allowed_domains = ['www.jpxgmn.net']
+    start_urls = ['http://www.jpxgmn.net/']
+    resource_url = 'https://p.jpxgmn.net/'
 
     def parse(self, response):
         # 通过主站获取各个系列的 url
@@ -18,7 +18,7 @@ class JpxgmnSpider(scrapy.Spider):
 
     def parse_1(self, response):
         # 通过系列页面获取各个图组的 url
-        related_box = response.xpath("//*[@class='related_box']/a/@href").extract()[4:5]
+        related_box = response.xpath("//*[@class='related_box']/a/@href").extract()[:3]    # [:5]调节爬取页面数量
         for box in related_box:
             box_url = parse.urljoin(response.url, box)
             yield scrapy.Request(url=box_url, callback=self.find_img_url)   # 传给 find_img_url 回调函数进行解析
@@ -34,6 +34,7 @@ class JpxgmnSpider(scrapy.Spider):
         img_urls = response.xpath("//img[@onload='size(this)']/@src").extract()
         image_urls = []    # 待下载的图片url列表（必须为列表）
         for img_url in img_urls:
+            img_url = '/U' + img_url[2:]
             img_url = parse.urljoin(self.resource_url, img_url)
             image_urls.append(img_url)
         image_info["image_urls"] = image_urls
